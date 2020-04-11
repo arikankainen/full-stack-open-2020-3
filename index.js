@@ -26,6 +26,14 @@ let persons = [
   }
 ]
 
+app.get('/info', (request, response) => {
+  const info = `
+  <p>Phonebook has info for ${persons.length} people</p>
+  <p>${new Date()}</p>
+  `
+  response.send(info)
+})
+
 app.get('/api/persons', (request, response) => {
   response.json(persons)
 })
@@ -41,12 +49,11 @@ app.get('/api/persons/:id', (request, response) => {
   }
 })
 
-app.get('/info', (request, response) => {
-  const info = `
-  <p>Phonebook has info for ${persons.length} people</p>
-  <p>${new Date()}</p>
-  `
-  response.send(info)
+app.delete('/api/persons/:id', (request, response) => {
+  const id = Number(request.params.id)
+  persons = persons.filter(person => person.id !== id)
+
+  response.status(204).end()
 })
 
 const PORT = 3001
