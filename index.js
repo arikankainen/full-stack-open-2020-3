@@ -70,6 +70,24 @@ app.post('/api/persons', (request, response) => {
     id: generateId()
   }
 
+  if (!body.name) {
+    return response.status(400).json({
+      error: 'name is missing'
+    })
+  }
+
+  if (!body.number) {
+    return response.status(400).json({
+      error: 'number is missing'
+    })
+  }
+
+  if (persons.some(person => person.name === body.name)) {
+    return response.status(400).json({
+      error: 'name must be unique'
+    })
+  }
+
   persons = persons.concat(person)
   response.json(person)
 })
