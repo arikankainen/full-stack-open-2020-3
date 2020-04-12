@@ -6,7 +6,11 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build:ui": "rmdir /s /q build & cd ../full-stack-open-2020/osa3/puhelinluettelo && npm run build --prod && xcopy build ..\\..\\..\\full-stack-open-2020-3\\build\\ /s /e /y",
+    "deploy": "git push heroku master",
+    "deploy:full": "npm run build:ui && git add . && git commit -m uibuild && npm run deploy",    
+    "logs:prod": "heroku logs --tail"
   },
   "author": "Ari Kankainen",
   "license": "MIT",
