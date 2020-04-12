@@ -44,9 +44,11 @@ const generateId = () => {
   return Math.floor(Math.random() * Math.floor(max));
 }
 
+/*
 app.get('/', (request, response) => {
   response.send('<p>Main</p>')
 })
+*/
 
 app.get('/info', (request, response) => {
   const info = `
