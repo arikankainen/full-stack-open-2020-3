@@ -11,6 +11,7 @@ const app = express()
 app.use(express.json())
 app.use(cors())
 app.use(express.static('build'))
+
 app.use(morgan(
   ':method :url :status :res[content-length] - :response-time ms :body'
 ))
@@ -42,6 +43,10 @@ const generateId = () => {
   const max = 1000000
   return Math.floor(Math.random() * Math.floor(max));
 }
+
+app.get('/', (request, response) => {
+  response.send('<p>Main</p>')
+})
 
 app.get('/info', (request, response) => {
   const info = `
