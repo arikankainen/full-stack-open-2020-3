@@ -16,12 +16,17 @@ app.use(cors())
 app.use(express.static('build'))
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'))
 
-app.get('/info', (request, response) => {
-  const info = `
-  <p>Phonebook has info for ${persons.length} people</p>
-  <p>${new Date()}</p>
-  `
-  response.send(info)
+app.get('/info', (request, response, next) => {
+  Person
+    .find({})
+    .then(persons => {
+      const info = `
+      <p>Phonebook has info for ${persons.length} people</p>
+      <p>${new Date()}</p>
+      `
+      response.send(info)
+    })
+    .catch(error => next(error))
 })
 
 app.get('/api/persons', (request, response, next) => {
