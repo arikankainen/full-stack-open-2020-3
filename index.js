@@ -5,7 +5,6 @@ const cors = require('cors')
 const mongoose = require('mongoose')
 const Person = require('./models/person')
 
-
 morgan.token('body', (request, response) => {
   return JSON.stringify(request.body)
 })
@@ -57,7 +56,8 @@ app.get('/info', (request, response) => {
 })
 
 app.get('/api/persons', (request, response) => {
-  Person.find({})
+  Person
+    .find({})
     .then(persons => {
       response.json(persons.map(person => person.toJSON()))
     })
@@ -81,12 +81,6 @@ app.delete('/api/persons/:id', (request, response) => {
 app.post('/api/persons', (request, response) => {
   const body = request.body
 
-  const person = {
-    name: body.name,
-    number: body.number,
-    id: generateId()
-  }
-
   if (!body.name) {
     return response.status(400).json({
       error: 'name is missing'
@@ -99,14 +93,16 @@ app.post('/api/persons', (request, response) => {
     })
   }
 
-  if (persons.some(person => person.name === body.name)) {
-    return response.status(400).json({
-      error: 'name must be unique'
-    })
-  }
+  const person = new Person({
+    name: body.name,
+    number: body.number,
+  })
 
-  persons = persons.concat(person)
-  response.json(person)
+  person
+    .save()
+    .then(savedPerson => {
+      response.json(savedPerson.toJSON())
+    })
 })
 
 const PORT = process.env.PORT || 3001
