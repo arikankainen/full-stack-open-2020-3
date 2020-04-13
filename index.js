@@ -14,38 +14,7 @@ const app = express()
 app.use(express.json())
 app.use(cors())
 app.use(express.static('build'))
-
-app.use(morgan(
-  ':method :url :status :res[content-length] - :response-time ms :body'
-))
-
-let persons = [
-  {
-    "name": "Arto Hellas",
-    "number": "121243253452",
-    "id": 1
-  },
-  {
-    "name": "Ada Lovelace",
-    "number": "39-44-5323523",
-    "id": 2
-  },
-  {
-    "name": "Dan Abramov",
-    "number": "12-43-234345",
-    "id": 3
-  },
-  {
-    "name": "Mary Poppendieck",
-    "number": "39-23-6423122",
-    "id": 4
-  }
-]
-
-const generateId = () => {
-  const max = 1000000
-  return Math.floor(Math.random() * Math.floor(max));
-}
+app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'))
 
 app.get('/info', (request, response) => {
   const info = `
@@ -55,43 +24,47 @@ app.get('/info', (request, response) => {
   response.send(info)
 })
 
-app.get('/api/persons', (request, response) => {
+app.get('/api/persons', (request, response, next) => {
   Person
     .find({})
     .then(persons => {
       response.json(persons.map(person => person.toJSON()))
     })
+    .catch(error => next(error))
 })
 
-app.get('/api/persons/:id', (request, response) => {
+app.get('/api/persons/:id', (request, response, next) => {
   Person
     .findById(request.params.id)
     .then(person => {
-      response.json(person.toJSON())
+      if (person) {
+        response.json(person.toJSON())
+      } else {
+        response.status(404).end()
+      }
+      
     })
+    .catch(error => next(error))
  })
 
-app.delete('/api/persons/:id', (request, response) => {
+app.delete('/api/persons/:id', (request, response, next) => {
   Person
     .findByIdAndRemove(request.params.id)
     .then(result => {
       response.status(204).end()
     })
+    .catch(error => next(error))
 })
 
-app.post('/api/persons', (request, response) => {
+app.post('/api/persons', (request, response, next) => {
   const body = request.body
 
   if (!body.name) {
-    return response.status(400).json({
-      error: 'name is missing'
-    })
+    return response.status(400).json({ error: 'name is missing' })
   }
 
   if (!body.number) {
-    return response.status(400).json({
-      error: 'number is missing'
-    })
+    return response.status(400).json({ error: 'number is missing' })
   }
 
   const person = new Person({
@@ -104,7 +77,36 @@ app.post('/api/persons', (request, response) => {
     .then(savedPerson => {
       response.json(savedPerson.toJSON())
     })
+    .catch(error => next(error))
 })
+
+const unknownEndpoint = (request, response) => {
+  response.status(404).send({ error: 'unknown endpoint' })
+}
+
+app.use(unknownEndpoint)
+
+const errorHandler = (error, request, response, next) => {
+  console.log('error.name', error.name)
+  console.log('error.kind', error.kind)
+  console.error(error.message)
+
+  // 'error.kind' ei saa vääräntyyppisessä id:ssä arvoa 'ObjectId' vaan on 'undefined',
+  // joten ohjeenmukainen tarkistus ei toimi. Alapuolelle lisätty toisenlainen tarkistus.
+  /*
+  if (error.name === 'CastError' && error.kind == 'ObjectId') {
+    return response.status(400).send({ error: 'malformatted id' })
+  }
+  */
+
+  if (error.name === 'CastError' && error.message.startsWith('Cast to ObjectId failed')) {
+    return response.status(400).send({ error: 'malformatted id' })
+  }
+
+  next(error)
+}
+
+app.use(errorHandler)
 
 const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
