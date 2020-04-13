@@ -121,8 +121,8 @@ const errorHandler = (error, request, response, next) => {
 
   if (error.name === 'CastError' && error.message.startsWith('Cast to ObjectId failed')) {
     return response.status(400).send({ error: 'malformatted id' })
-  } else if (error.name === 'ValidationError' && error.message.startsWith('Person validation failed: name: Error, expected `name` to be unique')) {
-    return response.status(400).send({ error: 'name must be unique' })
+  } else if (error.name === 'ValidationError') {
+    return response.status(400).send({ error: error.message })
   }
 
   next(error)
