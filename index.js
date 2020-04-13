@@ -2,7 +2,6 @@ require('dotenv').config()
 const express = require('express')
 const morgan = require('morgan')
 const cors = require('cors')
-const mongoose = require('mongoose')
 const Person = require('./models/person')
 
 morgan.token('body', (request, response) => {
@@ -122,6 +121,8 @@ const errorHandler = (error, request, response, next) => {
 
   if (error.name === 'CastError' && error.message.startsWith('Cast to ObjectId failed')) {
     return response.status(400).send({ error: 'malformatted id' })
+  } else if (error.name === 'ValidationError' && error.message.startsWith('Person validation failed: name: Error, expected `name` to be unique')) {
+    return response.status(400).send({ error: 'name must be unique' })
   }
 
   next(error)
